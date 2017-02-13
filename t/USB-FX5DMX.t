@@ -21,6 +21,7 @@ is(USB::FX5DMX::ThisIsWorking(), 1, "works");
 
 my $serials = USB::FX5DMX::GetInterfaces();
 is(ref($serials), "ARRAY", "is an array ref");
-is(scalar(@$serials), 16, "got 16 entries");
+ok(scalar(@$serials) > 0, "there is a device connected") or BAIL_OUT("Either no USB-Interface connected, or fatal error!");
+isnt($serials->[0], "0000000000000000", "there is a valid serial number");
 
 done_testing;

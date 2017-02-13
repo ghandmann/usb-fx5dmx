@@ -17,7 +17,8 @@
 #include "usbdmx/usbdmx.h"
 
 
-#line 21 "FX5DMX.c"
+
+#line 22 "FX5DMX.c"
 #ifndef PERL_UNUSED_VAR
 #  define PERL_UNUSED_VAR(var) if (0) var = var
 #endif
@@ -161,7 +162,7 @@ S_croak_xs_usage(const CV *const cv, const char *const params)
 #  define newXS_deffile(a,b) Perl_newXS_deffile(aTHX_ a,b)
 #endif
 
-#line 165 "FX5DMX.c"
+#line 166 "FX5DMX.c"
 
 XS_EUPXS(XS_USB__FX5DMX_ThisIsWorking); /* prototype to pass -Wmissing-prototypes */
 XS_EUPXS(XS_USB__FX5DMX_ThisIsWorking)
@@ -172,9 +173,9 @@ XS_EUPXS(XS_USB__FX5DMX_ThisIsWorking)
     {
 	int	RETVAL;
 	dXSTARG;
-#line 16 "FX5DMX.xs"
+#line 17 "FX5DMX.xs"
 		RETVAL = 1;
-#line 178 "FX5DMX.c"
+#line 179 "FX5DMX.c"
 	XSprePUSH; PUSHi((IV)RETVAL);
     }
     XSRETURN(1);
@@ -189,7 +190,7 @@ XS_EUPXS(XS_USB__FX5DMX_GetInterfaces)
        croak_xs_usage(cv,  "");
     {
 	AV *	RETVAL;
-#line 23 "FX5DMX.xs"
+#line 24 "FX5DMX.xs"
 		RETVAL = newAV();
 		fprintf(stderr, "[XS] Calling GetAllConnectedInterfaces\n");
 		//TSERIALLIST* result = malloc(sizeof(TSERIALLIST));
@@ -197,19 +198,25 @@ XS_EUPXS(XS_USB__FX5DMX_GetInterfaces)
 		GetAllConnectedInterfaces(&result);
 		fprintf(stderr, "[XS] Loaded all connected interfaces\n");
 
-		char* serialList[16];
-		char emptySerial[16];
+		char emptySerial[17];
+		memset(&emptySerial, '0', 17);
+		emptySerial[16] = '\0';
 
-		memset(&emptySerial, '0', 16);
-
-		for(int i = 0; i < 15; i++) {
+		for(int i = 0; i < 16; i++) {
 			char serial[17];
 			memcpy(serial, result[i], 16);
 			serial[16] = '\0';
-			serialList[i] = serial;
+
+			int compareResult = strncmp(serial, emptySerial, 16);
+			// Valid serial found, store
+			if(compareResult != 0) {
+				SV* value = newSVpv(serial, 16); // copy serial
+				av_push(RETVAL, value);
+			}
+
 			fprintf(stderr, "[XS] Found Serial: %s\n", serial);
 		}
-#line 213 "FX5DMX.c"
+#line 220 "FX5DMX.c"
 	{
 	    SV * RETVALSV;
 	    RETVALSV = newRV((SV*)RETVAL);
@@ -229,7 +236,7 @@ XS_EUPXS(XS_USB__FX5DMX_GetArrayBack)
        croak_xs_usage(cv,  "");
     {
 	AV *	RETVAL;
-#line 48 "FX5DMX.xs"
+#line 55 "FX5DMX.xs"
 		AV* out = newAV();
 		for(int i = 0; i < 5; i++) {
 			SV* value = newSViv(i);
@@ -238,7 +245,7 @@ XS_EUPXS(XS_USB__FX5DMX_GetArrayBack)
 
 		size_t size_RETVAL = 6;
 		RETVAL = out;
-#line 242 "FX5DMX.c"
+#line 249 "FX5DMX.c"
 	{
 	    SV * RETVALSV;
 	    RETVALSV = newRV((SV*)RETVAL);
