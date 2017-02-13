@@ -9,3 +9,5 @@ This software is in an experimental state! It's my first XS-based perl module, a
 # LICENSE
 
 I plan to license this code under the Artistic License (https://dev.perl.org/licenses/artistic.html)
+
+No warranties what so ever.
