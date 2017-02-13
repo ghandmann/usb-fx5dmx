@@ -1,0 +1,4 @@
+[submodule "usbdmx"]
+	path = usbdmx
+	url = git@github.com:fx5/usbdmx.git
+	branch = master
