@@ -1,0 +1,6 @@
+Revision history for Perl extension USB::FX5DMX.
+
+0.01  Fri Feb  3 21:06:16 2017
+	- original version; created by h2xs 1.23 with options
+		-A -n USB::FX5DMX
+

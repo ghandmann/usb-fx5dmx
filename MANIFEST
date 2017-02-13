@@ -1,0 +1,8 @@
+Changes
+FX5DMX.xs
+Makefile.PL
+MANIFEST
+ppport.h
+README
+t/USB-FX5DMX.t
+lib/USB/FX5DMX.pm
