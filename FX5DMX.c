@@ -17,8 +17,33 @@
 #include "usbdmx/usbdmx.h"
 
 
+AV* TSerialListToArray(TSERIALLIST result) {
+	AV* retval = newAV();
 
-#line 22 "FX5DMX.c"
+	static char emptySerial[17];
+	memset(&emptySerial, '0', 17);
+	emptySerial[16] = '\0';
+
+	for(int i = 0; i < 16; i++) {
+		char serial[17];
+		memcpy(serial, result[i], 16);
+		serial[16] = '\0';
+
+		int compareResult = strncmp(serial, emptySerial, 16);
+		// Valid serial found, store
+		if(compareResult != 0) {
+			SV* value = newSVpv(serial, 16); // copy serial
+			av_push(retval, value);
+		}
+
+	}
+	
+	return retval;
+}
+
+
+
+#line 47 "FX5DMX.c"
 #ifndef PERL_UNUSED_VAR
 #  define PERL_UNUSED_VAR(var) if (0) var = var
 #endif
@@ -162,35 +187,17 @@ S_croak_xs_usage(const CV *const cv, const char *const params)
 #  define newXS_deffile(a,b) Perl_newXS_deffile(aTHX_ a,b)
 #endif
 
-#line 166 "FX5DMX.c"
+#line 191 "FX5DMX.c"
 
-XS_EUPXS(XS_USB__FX5DMX_ThisIsWorking); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_USB__FX5DMX_ThisIsWorking)
-{
-    dVAR; dXSARGS;
-    if (items != 0)
-       croak_xs_usage(cv,  "");
-    {
-	int	RETVAL;
-	dXSTARG;
-#line 17 "FX5DMX.xs"
-		RETVAL = 1;
-#line 179 "FX5DMX.c"
-	XSprePUSH; PUSHi((IV)RETVAL);
-    }
-    XSRETURN(1);
-}
-
-
-XS_EUPXS(XS_USB__FX5DMX_GetInterfaces); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_USB__FX5DMX_GetInterfaces)
+XS_EUPXS(XS_USB__FX5DMX_GetAllConnectedInterfaces); /* prototype to pass -Wmissing-prototypes */
+XS_EUPXS(XS_USB__FX5DMX_GetAllConnectedInterfaces)
 {
     dVAR; dXSARGS;
     if (items != 0)
        croak_xs_usage(cv,  "");
     {
 	AV *	RETVAL;
-#line 24 "FX5DMX.xs"
+#line 42 "FX5DMX.xs"
 		RETVAL = newAV();
 		fprintf(stderr, "[XS] Calling GetAllConnectedInterfaces\n");
 		//TSERIALLIST* result = malloc(sizeof(TSERIALLIST));
@@ -198,25 +205,9 @@ XS_EUPXS(XS_USB__FX5DMX_GetInterfaces)
 		GetAllConnectedInterfaces(&result);
 		fprintf(stderr, "[XS] Loaded all connected interfaces\n");
 
-		char emptySerial[17];
-		memset(&emptySerial, '0', 17);
-		emptySerial[16] = '\0';
+		RETVAL = TSerialListToArray(result);
 
-		for(int i = 0; i < 16; i++) {
-			char serial[17];
-			memcpy(serial, result[i], 16);
-			serial[16] = '\0';
-
-			int compareResult = strncmp(serial, emptySerial, 16);
-			// Valid serial found, store
-			if(compareResult != 0) {
-				SV* value = newSVpv(serial, 16); // copy serial
-				av_push(RETVAL, value);
-			}
-
-			fprintf(stderr, "[XS] Found Serial: %s\n", serial);
-		}
-#line 220 "FX5DMX.c"
+#line 211 "FX5DMX.c"
 	{
 	    SV * RETVALSV;
 	    RETVALSV = newRV((SV*)RETVAL);
@@ -228,30 +219,67 @@ XS_EUPXS(XS_USB__FX5DMX_GetInterfaces)
 }
 
 
-XS_EUPXS(XS_USB__FX5DMX_GetArrayBack); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_USB__FX5DMX_GetArrayBack)
+XS_EUPXS(XS_USB__FX5DMX_GetAllOpenedInterfaces); /* prototype to pass -Wmissing-prototypes */
+XS_EUPXS(XS_USB__FX5DMX_GetAllOpenedInterfaces)
 {
     dVAR; dXSARGS;
     if (items != 0)
        croak_xs_usage(cv,  "");
     {
 	AV *	RETVAL;
-#line 55 "FX5DMX.xs"
-		AV* out = newAV();
-		for(int i = 0; i < 5; i++) {
-			SV* value = newSViv(i);
-			av_push(out, value);
-		}
+#line 57 "FX5DMX.xs"
+		TSERIALLIST result;
+		GetAllOpenedInterfaces(&result);
 
-		size_t size_RETVAL = 6;
-		RETVAL = out;
-#line 249 "FX5DMX.c"
+		RETVAL = TSerialListToArray(result);
+#line 236 "FX5DMX.c"
 	{
 	    SV * RETVALSV;
 	    RETVALSV = newRV((SV*)RETVAL);
 	    RETVALSV = sv_2mortal(RETVALSV);
 	    ST(0) = RETVALSV;
 	}
+    }
+    XSRETURN(1);
+}
+
+
+XS_EUPXS(XS_USB__FX5DMX_OpenLink); /* prototype to pass -Wmissing-prototypes */
+XS_EUPXS(XS_USB__FX5DMX_OpenLink)
+{
+    dVAR; dXSARGS;
+    if (items != 1)
+       croak_xs_usage(cv,  "serial");
+    {
+	char*	serial = (char *)SvPV_nolen(ST(0))
+;
+	DWORD	RETVAL;
+#line 68 "FX5DMX.xs"
+		fprintf(stderr, "[XS] Trying to open device with serial='%s'\n", serial);
+		TDMXArray out;
+		TDMXArray in;
+		OpenLink(serial, &out, &in);
+		// TODO: How to track/tie these TDMXArrays and Perl-Arrays?
+#line 264 "FX5DMX.c"
+    }
+    XSRETURN(1);
+}
+
+
+XS_EUPXS(XS_USB__FX5DMX_CloseLink); /* prototype to pass -Wmissing-prototypes */
+XS_EUPXS(XS_USB__FX5DMX_CloseLink)
+{
+    dVAR; dXSARGS;
+    if (items != 1)
+       croak_xs_usage(cv,  "serial");
+    {
+	char*	serial = (char *)SvPV_nolen(ST(0))
+;
+	DWORD	RETVAL;
+#line 78 "FX5DMX.xs"
+		fprintf(stderr, "[XS] Trying to close device with serial='%s'\n", serial);
+		CloseLink(serial);
+#line 283 "FX5DMX.c"
     }
     XSRETURN(1);
 }
@@ -284,9 +312,10 @@ XS_EXTERNAL(boot_USB__FX5DMX)
 #  endif
 #endif
 
-        newXS_deffile("USB::FX5DMX::ThisIsWorking", XS_USB__FX5DMX_ThisIsWorking);
-        newXS_deffile("USB::FX5DMX::GetInterfaces", XS_USB__FX5DMX_GetInterfaces);
-        newXS_deffile("USB::FX5DMX::GetArrayBack", XS_USB__FX5DMX_GetArrayBack);
+        newXS_deffile("USB::FX5DMX::GetAllConnectedInterfaces", XS_USB__FX5DMX_GetAllConnectedInterfaces);
+        newXS_deffile("USB::FX5DMX::GetAllOpenedInterfaces", XS_USB__FX5DMX_GetAllOpenedInterfaces);
+        newXS_deffile("USB::FX5DMX::OpenLink", XS_USB__FX5DMX_OpenLink);
+        newXS_deffile("USB::FX5DMX::CloseLink", XS_USB__FX5DMX_CloseLink);
 #if PERL_VERSION_LE(5, 21, 5)
 #  if PERL_VERSION_GE(5, 9, 0)
     if (PL_unitcheckav)
