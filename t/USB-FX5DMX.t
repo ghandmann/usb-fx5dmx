@@ -17,11 +17,12 @@ BEGIN { use_ok('USB::FX5DMX') };
 # Insert your test code below, the Test::More module is use()ed here so read
 # its man page ( perldoc Test::More ) for help writing this test script.
 
-is(USB::FX5DMX::ThisIsWorking(), 1, "works");
-
 my $serials = USB::FX5DMX::GetInterfaces();
 is(ref($serials), "ARRAY", "is an array ref");
-ok(scalar(@$serials) > 0, "there is a device connected") or BAIL_OUT("Either no USB-Interface connected, or fatal error!");
+ok(scalar(@$serials) > 0, "there is a device connected") or BAIL_OUT("No serial number found. Probably no FX5 DMX USB-Interface connected! Can't continue!");
 isnt($serials->[0], "0000000000000000", "there is a valid serial number");
+foreach my $serial (@$serials) {
+	is(length($serial), 16, "serial is exactly 16 bytes long");
+}
 
 done_testing;
